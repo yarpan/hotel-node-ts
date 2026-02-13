@@ -1,0 +1,13 @@
+FAIL tests/unit/middleware/auth.test.ts
+  ● Test suite failed to run
+
+    [96mtests/unit/middleware/auth.test.ts[0m:[93m1[0m:[93m10[0m - [91merror[0m[90m TS6133: [0m'Request' is declared but its value is never read.
+
+    [7m1[0m import { Request, Response, NextFunction } from 'express';
+    [7m [0m [91m         ~~~~~~~[0m
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        16.336 s
+Ran all test suites matching tests/unit/middleware/auth.test.ts.
