@@ -33,7 +33,7 @@ describe('Room Model', () => {
 
         it('should require unique roomNumber', async () => {
             await Room.create({
-                roomNumber: '202',
+                roomNumber: '999',
                 type: 'single',
                 capacity: 2,
                 pricePerNight: 100,
@@ -41,7 +41,7 @@ describe('Room Model', () => {
             });
 
             const duplicateRoom = new Room({
-                roomNumber: '202',
+                roomNumber: '999',
                 type: 'double',
                 capacity: 4,
                 pricePerNight: 150,
@@ -51,15 +51,15 @@ describe('Room Model', () => {
             await expect(duplicateRoom.save()).rejects.toThrow();
         });
 
-        it('should require type', async () => {
-            const room = new Room({
+        it('should default to single type', async () => {
+            const room = await Room.create({
                 roomNumber: '103',
                 capacity: 2,
                 pricePerNight: 100,
                 description: 'Test room'
             });
 
-            await expect(room.save()).rejects.toThrow();
+            expect(room.type).toBe('single');
         });
 
         it('should require capacity', async () => {

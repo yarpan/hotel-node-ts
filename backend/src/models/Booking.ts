@@ -65,11 +65,11 @@ const bookingSchema = new Schema<IBooking>(
 );
 
 // Validate check-out date is after check-in date
-bookingSchema.pre('save', function (next: any) {
+// Validate check-out date is after check-in date
+bookingSchema.pre('save', function () {
     if (this.checkOutDate <= this.checkInDate) {
-        return next(new Error('Check-out date must be after check-in date'));
+        throw new Error('Check-out date must be after check-in date');
     }
-    next();
 });
 
 // Indexes for efficient queries

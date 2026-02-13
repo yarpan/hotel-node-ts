@@ -1,0 +1,9 @@
+Starting MongoDB Memory Server...
+Connected to mongoose
+Test 1: Create valid room
+✅ Room created: 101
+Test 2: Create duplicate room
+✅ Test 2 passed: Duplicate room threw error 11000
+Test 3: Invalid status
+✅ Test 3 passed: Invalid status threw ValidationError
+Finished
