@@ -1,0 +1,11 @@
+Starting MongoDB Memory Server...
+MongoDB Memory Server started at: mongodb://127.0.0.1:5227/
+Connecting to mongoose...
+Connected to mongoose
+Creating user...
+TypeError: next is not a function
+    at model.<anonymous> (D:\OneDrive\CODE\JAVASCRIPT\node-hotel-ts\backend\src\models\User.ts:88:9)
+    at async Kareem.execPre (D:\OneDrive\CODE\JAVASCRIPT\node-hotel-ts\backend\node_modules\kareem\index.js:65:24)
+    at async model.$__save (D:\OneDrive\CODE\JAVASCRIPT\node-hotel-ts\backend\node_modules\mongoose\lib\model.js:369:5)
+    at async model.save (D:\OneDrive\CODE\JAVASCRIPT\node-hotel-ts\backend\node_modules\mongoose\lib\model.js:609:5)
+    at async run (D:\OneDrive\CODE\JAVASCRIPT\node-hotel-ts\backend\test-db.ts:27:5)
