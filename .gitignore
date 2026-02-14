@@ -96,3 +96,7 @@ Desktop.ini
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
+  
+# Debug files  
+debug-*.txt  
+auth-log.txt 
