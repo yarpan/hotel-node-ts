@@ -41,7 +41,12 @@ backend/
 
 ### Installation
 
-1. Install dependencies:
+1. Navigate to the backend directory:
+```bash
+cd backend
+```
+
+2. Install dependencies:
 ```bash
 npm install
 ```
