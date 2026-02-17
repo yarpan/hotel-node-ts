@@ -116,9 +116,19 @@ npm run test:watch
 - **Database**: MongoDB with Mongoose
 - **Authentication**: JWT (jsonwebtoken)
 - **Password Hashing**: bcryptjs
-- **Validation**: express-validator
-- **Security**: helmet, cors, express-rate-limit
-- **Testing**: Jest, Supertest
+- ✅ Validation: express-validator
+- ✅ Security: helmet, cors, express-rate-limit
+- ✅ API Documentation: Swagger UI
+- ✅ Testing: Jest, Supertest
+
+## Documentation
+
+API documentation is available via Swagger UI when the server is running.
+
+- **URL**: `http://localhost:5000/api-docs`
+- **Features**: Interactive testing of all API endpoints, detailed schema definitions.
+
+Note: The server is configured to serve documentation even if MongoDB is not connected (though endpoints will return errors).
 
 ## License
 
