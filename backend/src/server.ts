@@ -21,7 +21,10 @@ const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(helmet()); // Security headers
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP for Swagger UI to work freely or configure it propertly
+    crossOriginEmbedderPolicy: false
+})); // Security headers
 app.use(cors()); // Enable CORS
 app.use(morgan('dev')); // HTTP request logger
 app.use(express.json()); // Parse JSON bodies
@@ -60,15 +63,16 @@ app.use(errorHandler);
 const startServer = async () => {
     try {
         await connectDB();
-        app.listen(PORT, () => {
-            console.log(`✅ Server is running on port ${PORT}`);
-            console.log(`🔗 API available at http://localhost:${PORT}`);
-            console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-        });
     } catch (error) {
-        console.error('❌ Failed to start server:', error);
-        process.exit(1);
+        console.error('❌ Failed to connect to MongoDB:', error);
     }
+
+    app.listen(PORT, () => {
+        console.log(`✅ Server is running on port ${PORT}`);
+        console.log(`🔗 API available at http://localhost:${PORT}`);
+        console.log(`📖 Swagger UI available at http://localhost:${PORT}/api-docs`);
+        console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
 };
 
 startServer();
