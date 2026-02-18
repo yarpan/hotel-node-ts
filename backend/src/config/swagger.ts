@@ -1,3 +1,4 @@
+import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 const options: swaggerJsdoc.Options = {
@@ -64,11 +65,12 @@ const options: swaggerJsdoc.Options = {
                         totalPrice: { type: 'number' },
                         status: { type: 'string', enum: ['confirmed', 'checked-in', 'checked-out', 'cancelled'] },
                     },
-                }
+                },
             },
         },
     },
-    apis: ['./src/routes/*.ts'], // Path to the API docs
+    // Use absolute path so it works regardless of CWD
+    apis: [path.join(__dirname, '..', 'routes', '*.ts')],
 };
 
 export const specs = swaggerJsdoc(options);

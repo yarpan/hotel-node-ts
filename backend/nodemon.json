@@ -12,6 +12,7 @@
         "NODE_ENV": "development"
     },
     "restartable": "rs",
-    "delay": 1000,
-    "verbose": true
+    "delay": 1500,
+    "verbose": false,
+    "signal": "SIGINT"
 }

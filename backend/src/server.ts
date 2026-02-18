@@ -18,17 +18,18 @@ import guestRoutes from './routes/guest.routes';
 dotenv.config();
 
 const app: Application = express();
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
+const HOST = '0.0.0.0'; // Explicitly bind to all interfaces
 
 // Middleware
 app.use(helmet({
-    contentSecurityPolicy: false, // Disable CSP for Swagger UI to work freely or configure it propertly
-    crossOriginEmbedderPolicy: false
-})); // Security headers
-app.use(cors()); // Enable CORS
-app.use(morgan('dev')); // HTTP request logger
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+    contentSecurityPolicy: false, // Disable CSP so Swagger UI inline scripts work
+    crossOriginEmbedderPolicy: false,
+}));
+app.use(cors());
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
@@ -59,21 +60,48 @@ app.use((_req: Request, res: Response) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Database connection and server start
+// --- Server startup ---
 const startServer = async () => {
+    // 1. Try connecting to MongoDB (non-blocking — server starts regardless)
     try {
         await connectDB();
-    } catch (error) {
-        console.error('❌ Failed to connect to MongoDB:', error);
+    } catch {
+        console.warn('⚠️  Server will start without a database connection.');
+        console.warn('⚠️  API endpoints requiring MongoDB will return errors.');
     }
 
-    app.listen(PORT, () => {
-        console.log(`✅ Server is running on port ${PORT}`);
-        console.log(`🔗 API available at http://localhost:${PORT}`);
-        console.log(`📖 Swagger UI available at http://localhost:${PORT}/api-docs`);
+    // 2. Start the HTTP server
+    const server = app.listen(PORT, HOST, () => {
+        console.log('');
+        console.log(`✅ Server is running on http://${HOST}:${PORT}`);
+        console.log(`🔗 API:         http://localhost:${PORT}`);
+        console.log(`📖 Swagger UI:  http://localhost:${PORT}/api-docs`);
+        console.log(`❤️  Health:      http://localhost:${PORT}/health`);
         console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log('');
+    });
+
+    // 3. Handle port-in-use and other server errors
+    server.on('error', (error: NodeJS.ErrnoException) => {
+        if (error.code === 'EADDRINUSE') {
+            console.error(`\n❌ Port ${PORT} is already in use.`);
+            console.error('   Fix: Close the other process or change PORT in .env\n');
+        } else {
+            console.error('❌ Server error:', error);
+        }
+        process.exit(1);
     });
 };
+
+// --- Global error safety nets ---
+process.on('unhandledRejection', (reason) => {
+    console.error('❌ Unhandled Promise Rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    process.exit(1);
+});
 
 startServer();
 
