@@ -100,3 +100,6 @@ Desktop.ini
 # Debug files  
 debug-*.txt  
 auth-log.txt 
+
+# Local drafts
+unstaged/

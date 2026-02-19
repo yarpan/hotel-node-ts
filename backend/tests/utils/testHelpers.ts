@@ -100,3 +100,23 @@ export const createBookingWithDates = async (
         paymentStatus: 'pending'
     });
 };
+
+/**
+ * Mock Express Request object
+ */
+export const mockRequest = (body: any = {}, params: any = {}, user: any = null) => ({
+    body,
+    params,
+    user,
+} as any);
+
+/**
+ * Mock Express Response object
+ */
+export const mockResponse = () => {
+    const res: any = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+    res.send = jest.fn().mockReturnValue(res);
+    return res;
+};
