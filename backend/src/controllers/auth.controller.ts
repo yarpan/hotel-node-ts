@@ -18,6 +18,7 @@ const generateToken = (userId: string): string => {
 // Register new user
 export const register = async (req: Request, res: Response): Promise<void> => {
     try {
+        console.log('📝 Registration attempt:', req.body.email);
         const { email, password, profile } = req.body;
 
         // Check if user already exists
