@@ -6,7 +6,7 @@
     
     /* Modules */
     "module": "commonjs",
-    "rootDir": "./src",
+    "rootDir": "./",
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
@@ -19,6 +19,7 @@
       "@config/*": ["src/config/*"]
     },
     "resolveJsonModule": true,
+    "types": ["jest", "node"],
     
     /* Emit */
     "outDir": "./dist",
@@ -39,12 +40,11 @@
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.spec.ts",
-    "**/*.test.ts"
+    "dist"
   ]
 }

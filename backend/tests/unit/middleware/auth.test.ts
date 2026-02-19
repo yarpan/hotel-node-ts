@@ -59,7 +59,7 @@ describe('Auth Middleware', () => {
             const res = mockResponse();
             const next = jest.fn();
 
-            const middleware = authorize(['admin']);
+            const middleware = authorize('admin');
             middleware(req, res, next);
 
             expect(next).toHaveBeenCalled();
@@ -72,7 +72,7 @@ describe('Auth Middleware', () => {
             const res = mockResponse();
             const next = jest.fn();
 
-            const middleware = authorize(['admin']);
+            const middleware = authorize('admin');
             middleware(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(403);
