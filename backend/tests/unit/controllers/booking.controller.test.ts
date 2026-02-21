@@ -1,4 +1,4 @@
-import { createBooking, getGuestBookings } from '../../../src/controllers/booking.controller';
+import { createBooking, getAllBookings } from '../../../src/controllers/booking.controller';
 import Booking from '../../../src/models/Booking';
 import Room from '../../../src/models/Room';
 import { mockRequest, mockResponse, createTestUser, createTestRoom } from '../../utils/testHelpers';
@@ -56,7 +56,7 @@ describe('Booking Controller', () => {
         });
     });
 
-    describe('getGuestBookings', () => {
+    describe('getAllBookings', () => {
         it('should return bookings for the authenticated guest', async () => {
             const { user } = await createTestUser();
             const room = await createTestRoom();
@@ -75,7 +75,7 @@ describe('Booking Controller', () => {
             const req = mockRequest({}, {}, user);
             const res = mockResponse();
 
-            await getGuestBookings(req, res);
+            await getAllBookings(req, res);
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
