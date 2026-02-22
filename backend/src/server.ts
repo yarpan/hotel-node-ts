@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import { connectDB } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './config/swagger';
@@ -60,14 +59,17 @@ app.use((_req: Request, res: Response) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
+import prisma from './utils/prismaClient';
+
 // --- Server startup ---
 const startServer = async () => {
-    // 1. Try connecting to MongoDB (non-blocking — server starts regardless)
+    // 1. Try connecting to PostgreSQL via Prisma
     try {
-        await connectDB();
-    } catch {
-        console.warn('⚠️  Server will start without a database connection.');
-        console.warn('⚠️  API endpoints requiring MongoDB will return errors.');
+        await prisma.$connect();
+        console.log('🐘 Connected to PostgreSQL via Prisma');
+    } catch (error) {
+        console.error('❌ Failed to connect to PostgreSQL:', error);
+        console.warn('⚠️  Server will start, but database operations may fail.');
     }
 
     // 2. Start the HTTP server
