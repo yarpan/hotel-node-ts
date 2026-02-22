@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import bcrypt from 'bcryptjs';
+import prisma from '../utils/prismaClient';
 import { AuthRequest } from '../middleware/auth';
 
 // Generate JWT token
-const generateToken = (userId: string): string => {
+const generateToken = (userId: number): string => {
     const jwtSecret = process.env.JWT_SECRET;
     const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
 
@@ -22,7 +23,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         const { email, password, profile } = req.body;
 
         // Check if user already exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             res.status(409).json({
                 status: 'error',
@@ -31,26 +32,50 @@ export const register = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         // Create new user
-        const user = await User.create({
-            email,
-            password,
-            profile,
-            role: 'guest', // Default role
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+                firstName: profile.firstName,
+                lastName: profile.lastName,
+                phone: profile.phone,
+                street: profile.address?.street,
+                city: profile.address?.city,
+                state: profile.address?.state,
+                country: profile.address?.country,
+                zipCode: profile.address?.zipCode,
+                role: 'guest',
+            },
         });
 
         // Generate token
-        const token = generateToken(user._id.toString());
+        const token = generateToken(user.id);
 
         res.status(201).json({
             status: 'success',
             message: 'User registered successfully',
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     role: user.role,
-                    profile: user.profile,
+                    profile: {
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        phone: user.phone,
+                        address: {
+                            street: user.street,
+                            city: user.city,
+                            state: user.state,
+                            country: user.country,
+                            zipCode: user.zipCode,
+                        }
+                    },
                 },
                 token,
             },
@@ -77,8 +102,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Find user by email (include password)
-        const user = await User.findOne({ email }).select('+password');
+        // Find user by email
+        const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user) {
             res.status(401).json({
@@ -89,7 +114,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         }
 
         // Check password
-        const isPasswordValid = await user.comparePassword(password);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
             res.status(401).json({
@@ -100,17 +125,28 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         }
 
         // Generate token
-        const token = generateToken(user._id.toString());
+        const token = generateToken(user.id);
 
         res.status(200).json({
             status: 'success',
             message: 'Login successful',
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     role: user.role,
-                    profile: user.profile,
+                    profile: {
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        phone: user.phone,
+                        address: {
+                            street: user.street,
+                            city: user.city,
+                            state: user.state,
+                            country: user.country,
+                            zipCode: user.zipCode,
+                        }
+                    },
                 },
                 token,
             },
@@ -141,10 +177,21 @@ export const getCurrentUser = async (
             status: 'success',
             data: {
                 user: {
-                    id: req.user._id,
+                    id: req.user.id,
                     email: req.user.email,
                     role: req.user.role,
-                    profile: req.user.profile,
+                    profile: {
+                        firstName: req.user.firstName,
+                        lastName: req.user.lastName,
+                        phone: req.user.phone,
+                        address: {
+                            street: req.user.street,
+                            city: req.user.city,
+                            state: req.user.state,
+                            country: req.user.country,
+                            zipCode: req.user.zipCode,
+                        }
+                    },
                 },
             },
         });

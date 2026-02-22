@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/User';
+import { User } from '@prisma/client';
+import prisma from '../utils/prismaClient';
 
 // Extend Express Request type to include user
 export interface AuthRequest extends Request {
-    user?: IUser;
+    user?: User;
 }
 
 export const authenticate = async (
@@ -32,10 +33,12 @@ export const authenticate = async (
             throw new Error('JWT_SECRET is not defined');
         }
 
-        const decoded = jwt.verify(token, jwtSecret) as { userId: string };
+        const decoded = jwt.verify(token, jwtSecret) as { userId: number };
 
         // Find user
-        const user = await User.findById(decoded.userId).select('-password');
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId }
+        });
 
         if (!user) {
             res.status(401).json({

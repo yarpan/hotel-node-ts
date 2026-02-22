@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  guest
+  admin
+  staff
+}
+
+enum RoomType {
+  single
+  double
+  suite
+  deluxe
+  presidential
+}
+
+enum RoomStatus {
+  available
+  occupied
+  maintenance
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  checked_in
+  checked_out
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  refunded
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role     @default(guest)
+  
+  // Profile fields (flattened for simplicity in PostgreSQL)
+  firstName String
+  lastName  String
+  phone     String
+  street    String?
+  city      String?
+  state     String?
+  country   String?
+  zipCode   String?
+
+  bookings  Booking[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Room {
+  id            Int      @id @default(autoincrement())
+  roomNumber    String   @unique
+  type          RoomType @default(single)
+  capacity      Int      @default(1)
+  pricePerNight Float
+  amenities     String[]
+  photos        String[]
+  description   String   @db.Text
+  status        RoomStatus @default(available)
+
+  bookings      Booking[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("rooms")
+}
+
+model Booking {
+  id              Int           @id @default(autoincrement())
+  guest           User          @relation(fields: [guestId], references: [id])
+  guestId         Int
+  room            Room          @relation(fields: [roomId], references: [id])
+  roomId          Int
+  checkInDate     DateTime
+  checkOutDate    DateTime
+  numberOfGuests  Int
+  totalPrice      Float
+  status          BookingStatus @default(pending)
+  specialRequests String?       @db.Text
+  paymentStatus   PaymentStatus @default(pending)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("bookings")
+}
