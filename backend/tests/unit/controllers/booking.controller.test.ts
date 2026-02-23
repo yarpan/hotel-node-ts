@@ -1,6 +1,5 @@
 import { createBooking, getAllBookings } from '../../../src/controllers/booking.controller';
-import Booking from '../../../src/models/Booking';
-import Room from '../../../src/models/Room';
+import prisma from '../../../src/utils/prismaClient';
 import { mockRequest, mockResponse, createTestUser, createTestRoom } from '../../utils/testHelpers';
 
 describe('Booking Controller', () => {
@@ -15,7 +14,7 @@ describe('Booking Controller', () => {
             checkOut.setDate(checkOut.getDate() + 3);
 
             const bookingData = {
-                roomId: room._id,
+                roomId: room.id,
                 checkInDate: checkIn,
                 checkOutDate: checkOut,
                 numberOfGuests: 2
@@ -32,16 +31,16 @@ describe('Booking Controller', () => {
                 message: 'Booking created successfully'
             }));
 
-            const bookingInDb = await Booking.findOne({ guestId: user._id });
+            const bookingInDb = await prisma.booking.findFirst({ where: { guestId: user.id } });
             expect(bookingInDb).toBeDefined();
-            expect(bookingInDb?.roomId.toString()).toBe(room._id.toString());
+            expect(bookingInDb?.roomId).toBe(room.id);
         });
 
         it('should return 404 if room does not exist', async () => {
             const { user } = await createTestUser();
             
             const bookingData = {
-                roomId: '507f1f77bcf86cd799439011',
+                roomId: 999999, // Non-existent integer ID
                 checkInDate: new Date(),
                 checkOutDate: new Date(),
                 numberOfGuests: 2
@@ -61,15 +60,17 @@ describe('Booking Controller', () => {
             const { user } = await createTestUser();
             const room = await createTestRoom();
             
-            await Booking.create({
-                guestId: user._id,
-                roomId: room._id,
-                checkInDate: new Date(),
-                checkOutDate: new Date(),
-                numberOfGuests: 2,
-                totalPrice: 200,
-                status: 'confirmed',
-                paymentStatus: 'pending'
+            await prisma.booking.create({
+                data: {
+                    guestId: user.id,
+                    roomId: room.id,
+                    checkInDate: new Date(),
+                    checkOutDate: new Date(),
+                    numberOfGuests: 2,
+                    totalPrice: 200,
+                    status: 'confirmed',
+                    paymentStatus: 'pending'
+                }
             });
 
             const req = mockRequest({}, {}, user);

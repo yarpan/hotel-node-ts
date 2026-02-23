@@ -1,5 +1,4 @@
 import { getAllRooms, getRoomById } from '../../../src/controllers/room.controller';
-import Room from '../../../src/models/Room';
 import { mockRequest, mockResponse, createTestRoom } from '../../utils/testHelpers';
 
 describe('Room Controller', () => {
@@ -24,7 +23,7 @@ describe('Room Controller', () => {
     describe('getRoomById', () => {
         it('should return a room if ID is valid', async () => {
             const room = await createTestRoom();
-            const req = mockRequest({}, { id: room._id });
+            const req = mockRequest({}, { id: room.id });
             const res = mockResponse();
 
             await getRoomById(req, res);
@@ -41,7 +40,7 @@ describe('Room Controller', () => {
         });
 
         it('should return 404 if room is not found', async () => {
-            const req = mockRequest({}, { id: '507f1f77bcf86cd799439011' }); // Random BSON ID
+            const req = mockRequest({}, { id: 999999 }); // Random integer ID
             const res = mockResponse();
 
             await getRoomById(req, res);

@@ -1,5 +1,5 @@
 import { register, login, getCurrentUser } from '../../../src/controllers/auth.controller';
-import User from '../../../src/models/User';
+import prisma from '../../../src/utils/prismaClient';
 import { mockRequest, mockResponse } from '../../utils/testHelpers';
 
 describe('Auth Controller', () => {
@@ -34,9 +34,9 @@ describe('Auth Controller', () => {
             }));
 
             // Verify user was actually created in DB
-            const userInDb = await User.findOne({ email: userData.email });
+            const userInDb = await prisma.user.findUnique({ where: { email: userData.email } });
             expect(userInDb).toBeDefined();
-            expect(userInDb?.profile.firstName).toBe(userData.profile.firstName);
+            expect(userInDb?.firstName).toBe(userData.profile.firstName);
         });
 
         it('should return 409 if user already exists', async () => {
@@ -50,10 +50,16 @@ describe('Auth Controller', () => {
                 }
             };
 
-            // Pre-create user
-            await User.create({
-                ...userData,
-                role: 'guest'
+            // Pre-create user (flattened)
+            await prisma.user.create({
+                data: {
+                    email: userData.email,
+                    password: userData.password,
+                    firstName: userData.profile.firstName,
+                    lastName: userData.profile.lastName,
+                    phone: userData.profile.phone,
+                    role: 'guest'
+                }
             });
 
             const req = mockRequest(userData);
@@ -72,11 +78,11 @@ describe('Auth Controller', () => {
     describe('login', () => {
         it('should login successfully with correct credentials', async () => {
             const password = 'password123';
-            const user = await User.create({
-                email: 'login@example.com',
-                password,
-                role: 'guest',
-                profile: {
+            const user = await prisma.user.create({
+                data: {
+                    email: 'login@example.com',
+                    password: await require('bcryptjs').hash(password, 10),
+                    role: 'guest',
                     firstName: 'Login',
                     lastName: 'User',
                     phone: '1234567890'
@@ -98,11 +104,11 @@ describe('Auth Controller', () => {
         });
 
         it('should return 401 for invalid password', async () => {
-            const user = await User.create({
-                email: 'wrongpass@example.com',
-                password: 'correctpassword',
-                role: 'guest',
-                profile: {
+            const user = await prisma.user.create({
+                data: {
+                    email: 'wrongpass@example.com',
+                    password: await require('bcryptjs').hash('correctpassword', 10),
+                    role: 'guest',
                     firstName: 'Wrong',
                     lastName: 'Pass',
                     phone: '1234567890'
@@ -133,11 +139,11 @@ describe('Auth Controller', () => {
 
     describe('getCurrentUser', () => {
         it('should return user data if authenticated', async () => {
-            const user = await User.create({
-                email: 'me@example.com',
-                password: 'password123',
-                role: 'guest',
-                profile: {
+            const user = await prisma.user.create({
+                data: {
+                    email: 'me@example.com',
+                    password: 'password123',
+                    role: 'guest',
                     firstName: 'Me',
                     lastName: 'User',
                     phone: '1234567890'

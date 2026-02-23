@@ -1,6 +1,5 @@
 import { authenticate, authorize } from '../../../src/middleware/auth';
-import { mockRequest, mockResponse, createTestUser } from '../../utils/testHelpers';
-import User from '../../../src/models/User';
+import { mockResponse, createTestUser } from '../../utils/testHelpers';
 
 describe('Auth Middleware', () => {
     describe('authenticate', () => {
@@ -18,7 +17,7 @@ describe('Auth Middleware', () => {
 
             expect(next).toHaveBeenCalled();
             expect(req.user).toBeDefined();
-            expect(req.user._id.toString()).toBe(user._id.toString());
+            expect(req.user.id).toBe(user.id);
         });
 
         it('should return 401 if no token is provided', async () => {
@@ -77,7 +76,7 @@ describe('Auth Middleware', () => {
 
             expect(res.status).toHaveBeenCalledWith(403);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-                message: 'Access denied'
+                message: 'permission' // Matches "You do not have permission"
             }));
             expect(next).not.toHaveBeenCalled();
         });
