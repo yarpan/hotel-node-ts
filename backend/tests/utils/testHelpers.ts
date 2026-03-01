@@ -108,10 +108,16 @@ export const createBookingWithDates = async (
 /**
  * Mock Express Request object
  */
-export const mockRequest = (body: any = {}, params: any = {}, user: any = null) => ({
+export const mockRequest = (
+    body: any = {},
+    params: any = {},
+    user: any = null,
+    query: any = {}
+) => ({
     body,
     params,
     user,
+    query,
     headers: {
         authorization: user ? 'Bearer mock-token' : undefined
     }
