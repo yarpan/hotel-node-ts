@@ -1,30 +1,19 @@
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import mongoose from 'mongoose';
+import 'dotenv/config';
+import prisma from '../src/utils/prismaClient';
 
-let mongoServer: MongoMemoryServer;
-
-// Before all tests - set up in-memory MongoDB
 beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-
-    await mongoose.connect(mongoUri);
-
-    // Set test environment variables
     process.env.JWT_SECRET = 'test-secret-key-for-testing';
     process.env.NODE_ENV = 'test';
+    await prisma.$connect();
 });
 
-// After all tests - disconnect and stop MongoDB
 afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
+    await prisma.$disconnect();
 });
 
-// Clear database between each test to ensure isolation
+// Delete all rows in dependency order after each test for isolation
 afterEach(async () => {
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-        await collections[key].deleteMany({});
-    }
+    await prisma.booking.deleteMany({});
+    await prisma.room.deleteMany({});
+    await prisma.user.deleteMany({});
 });

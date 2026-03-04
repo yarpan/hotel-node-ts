@@ -29,7 +29,7 @@ describe('Auth Middleware', () => {
 
             expect(res.status).toHaveBeenCalledWith(401);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-                message: 'No token provided'
+                message: expect.stringContaining('No token provided')
             }));
             expect(next).not.toHaveBeenCalled();
         });
@@ -76,7 +76,7 @@ describe('Auth Middleware', () => {
 
             expect(res.status).toHaveBeenCalledWith(403);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-                message: 'permission' // Matches "You do not have permission"
+                message: expect.stringContaining('permission')
             }));
             expect(next).not.toHaveBeenCalled();
         });
