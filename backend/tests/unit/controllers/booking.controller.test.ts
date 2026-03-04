@@ -153,4 +153,155 @@ describe('Booking Controller', () => {
         });
     });
 
+    describe('getBookingById', () => {
+        it('should return a booking for its owner', async () => {
+            const { user } = await createTestUser();
+            const room = await createTestRoom();
+            const booking = await createTestBooking(user.id, room.id);
+
+            const req = mockRequest({}, { id: booking.id }, user);
+            const res = mockResponse();
+
+            await getBookingById(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'success',
+                data: expect.objectContaining({
+                    booking: expect.objectContaining({ id: booking.id }),
+                }),
+            }));
+        });
+
+        it('should return 403 when a guest accesses another guest\'s booking', async () => {
+            const { user: owner } = await createTestUser();
+            const { user: other } = await createTestUser();
+            const room = await createTestRoom();
+            const booking = await createTestBooking(owner.id, room.id);
+
+            const req = mockRequest({}, { id: booking.id }, other);
+            const res = mockResponse();
+
+            await getBookingById(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(403);
+        });
+
+        it('should return 404 for a non-existent booking', async () => {
+            const { user } = await createTestUser();
+
+            const req = mockRequest({}, { id: 999999 }, user);
+            const res = mockResponse();
+
+            await getBookingById(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+    });
+
+    describe('cancelBooking', () => {
+        it('should cancel a booking for its owner', async () => {
+            const { user } = await createTestUser();
+            const room = await createTestRoom();
+            const booking = await createTestBooking(user.id, room.id);
+
+            const req = mockRequest({}, { id: booking.id }, user);
+            const res = mockResponse();
+
+            await cancelBooking(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'success',
+                message: 'Booking cancelled successfully',
+            }));
+
+            const updated = await prisma.booking.findUnique({ where: { id: booking.id } });
+            expect(updated?.status).toBe('cancelled');
+        });
+
+        it('should return 403 when a guest cancels another guest\'s booking', async () => {
+            const { user: owner } = await createTestUser();
+            const { user: other } = await createTestUser();
+            const room = await createTestRoom();
+            const booking = await createTestBooking(owner.id, room.id);
+
+            const req = mockRequest({}, { id: booking.id }, other);
+            const res = mockResponse();
+
+            await cancelBooking(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(403);
+        });
+    });
+
+    describe('checkIn', () => {
+        it('should check in a confirmed booking', async () => {
+            const { user } = await createTestUser();
+            const room = await createTestRoom();
+            const booking = await createTestBooking(user.id, room.id, { status: 'confirmed' });
+
+            const req = mockRequest({}, { id: booking.id }, user);
+            const res = mockResponse();
+
+            await checkIn(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'success',
+                message: 'Guest checked in successfully',
+            }));
+        });
+
+        it('should return 400 when booking is not in confirmed state', async () => {
+            const { user } = await createTestUser();
+            const room = await createTestRoom();
+            const booking = await createTestBooking(user.id, room.id, { status: 'cancelled' });
+
+            const req = mockRequest({}, { id: booking.id }, user);
+            const res = mockResponse();
+
+            await checkIn(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                message: 'Only confirmed bookings can be checked in',
+            }));
+        });
+    });
+
+    describe('checkOut', () => {
+        it('should check out a checked_in booking', async () => {
+            const { user } = await createTestUser();
+            const room = await createTestRoom();
+            const booking = await createTestBooking(user.id, room.id, { status: 'checked_in' });
+
+            const req = mockRequest({}, { id: booking.id }, user);
+            const res = mockResponse();
+
+            await checkOut(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'success',
+                message: 'Guest checked out successfully',
+            }));
+        });
+
+        it('should return 400 when booking is not in checked_in state', async () => {
+            const { user } = await createTestUser();
+            const room = await createTestRoom();
+            const booking = await createTestBooking(user.id, room.id, { status: 'confirmed' });
+
+            const req = mockRequest({}, { id: booking.id }, user);
+            const res = mockResponse();
+
+            await checkOut(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                message: 'Only checked-in bookings can be checked out',
+            }));
+        });
+    });
 });
