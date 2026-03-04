@@ -132,4 +132,90 @@ describe('Room Controller', () => {
         });
     });
 
+    describe('createRoom', () => {
+        it('should create a room and return 201', async () => {
+            const roomData = {
+                roomNumber: `TEST-${Date.now()}`,
+                type: 'suite',
+                capacity: 2,
+                pricePerNight: 250,
+                amenities: ['WiFi', 'Pool'],
+                photos: [],
+                description: 'A lovely suite',
+                status: 'available',
+            };
+
+            const req = mockRequest(roomData);
+            const res = mockResponse();
+
+            await createRoom(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'success',
+                message: 'Room created successfully',
+                data: expect.objectContaining({
+                    room: expect.objectContaining({ roomNumber: roomData.roomNumber }),
+                }),
+            }));
+        });
+    });
+
+    describe('updateRoom', () => {
+        it('should update a room and return 200', async () => {
+            const room = await createTestRoom();
+
+            const req = mockRequest({ pricePerNight: 999 }, { id: room.id });
+            const res = mockResponse();
+
+            await updateRoom(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'success',
+                message: 'Room updated successfully',
+                data: expect.objectContaining({
+                    room: expect.objectContaining({ pricePerNight: 999 }),
+                }),
+            }));
+        });
+
+        it('should return 404 when updating a non-existent room', async () => {
+            const req = mockRequest({ pricePerNight: 999 }, { id: 999999 });
+            const res = mockResponse();
+
+            await updateRoom(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+    });
+
+    describe('deleteRoom', () => {
+        it('should delete a room and return 200', async () => {
+            const room = await createTestRoom();
+
+            const req = mockRequest({}, { id: room.id });
+            const res = mockResponse();
+
+            await deleteRoom(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'success',
+                message: 'Room deleted successfully',
+            }));
+
+            const deleted = await prisma.room.findUnique({ where: { id: room.id } });
+            expect(deleted).toBeNull();
+        });
+
+        it('should return 404 when deleting a non-existent room', async () => {
+            const req = mockRequest({}, { id: 999999 });
+            const res = mockResponse();
+
+            await deleteRoom(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+    });
 });
