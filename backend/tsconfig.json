@@ -42,7 +42,7 @@
   "include": [
     "src/**/*",
     "tests/**/*"
-  ],
+, "../unstaged/middle/errorHandler.edge-cases.test.ts", "../unstaged/middle/auth.edge-cases.test.ts", "../unstaged/control/room.edge-cases.test.ts", "../unstaged/control/auth.edge-cases.test.ts", "../unstaged/control/booking.edge-cases.test.ts"  ],
   "exclude": [
     "node_modules",
     "dist"
