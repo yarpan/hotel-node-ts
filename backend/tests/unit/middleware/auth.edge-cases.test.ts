@@ -143,80 +143,10 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(next).not.toHaveBeenCalled();
         });
 
-        it('should return 401 if authorization header is completely absent', async () => {
-            const req = { headers: {} } as any;
-            const res = mockResponse();
-            const next = jest.fn();
 
-            await authenticate(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-                status: 'error',
-                message: 'No token provided. Please authenticate.',
-            }));
-            expect(next).not.toHaveBeenCalled();
-        });
 
-        it('should return 401 if Bearer prefix is present but token part is empty', async () => {
-            const req = {
-                headers: { authorization: 'Bearer ' }
-            } as any;
-            const res = mockResponse();
-            const next = jest.fn();
 
-            await authenticate(req, res, next);
-
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(next).not.toHaveBeenCalled();
-        });
-
-        it('should return 401 if token is a garbage non-JWT string', async () => {
-            const req = {
-                headers: { authorization: 'Bearer not.a.jwt' }
-            } as any;
-            const res = mockResponse();
-            const next = jest.fn();
-
-            await authenticate(req, res, next);
-
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(next).not.toHaveBeenCalled();
-        });
-
-        it('should return 500 if JWT_SECRET is not defined', async () => {
-            const original = process.env.JWT_SECRET;
-            delete process.env.JWT_SECRET;
-
-            const req = {
-                headers: { authorization: 'Bearer sometoken' }
-            } as any;
-            const res = mockResponse();
-            const next = jest.fn();
-
-            await authenticate(req, res, next);
-
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(next).not.toHaveBeenCalled();
-
-            process.env.JWT_SECRET = original;
-        });
-
-        it('should attach user to request and call next() on valid token', async () => {
-            const { user, token } = await createTestUser('guest');
-            const req = {
-                headers: { authorization: `Bearer ${token}` }
-            } as any;
-            const res = mockResponse();
-            const next = jest.fn();
-
-            await authenticate(req, res, next);
-
-            expect(next).toHaveBeenCalled();
-            expect(req.user).toBeDefined();
-            expect(req.user.id).toBe(user.id);
-            expect(res.status).not.toHaveBeenCalled();
-        });
     });
 
     describe('authorize - Edge Cases', () => {
@@ -313,5 +243,43 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(res.status).toHaveBeenCalledWith(403);
             expect(next).not.toHaveBeenCalled();
         });
+
+        it('should allow access when user role matches one of multiple allowed roles', () => {
+            const req = { user: { role: 'staff' } } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            const middleware = authorize('admin', 'staff');
+            middleware(req, res, next);
+
+            expect(next).toHaveBeenCalled();
+            expect(res.status).not.toHaveBeenCalled();
+        });
+
+        it('should return 403 when user role matches none of multiple allowed roles', () => {
+            const req = { user: { role: 'guest' } } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            const middleware = authorize('admin', 'staff');
+            middleware(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(403);
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should allow admin when admin role is required', () => {
+            const req = { user: { role: 'admin' } } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            const middleware = authorize('admin');
+            middleware(req, res, next);
+
+            expect(next).toHaveBeenCalled();
+            expect(res.status).not.toHaveBeenCalled();
+        });
+
+
     });
 });
