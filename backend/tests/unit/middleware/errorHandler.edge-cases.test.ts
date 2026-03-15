@@ -1,5 +1,5 @@
-import { errorHandler } from '../../backend/src/middleware/errorHandler';
-import { mockRequest, mockResponse } from '../../backend/tests/utils/testHelpers';
+import { errorHandler } from '../../../src/middleware/errorHandler';
+import { mockRequest, mockResponse } from '../../utils/testHelpers';
 
 describe('Error Handler Middleware - Edge Cases', () => {
     it('should handle errors with custom status codes', () => {
