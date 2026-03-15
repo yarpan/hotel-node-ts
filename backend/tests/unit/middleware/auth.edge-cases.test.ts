@@ -280,6 +280,84 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(res.status).not.toHaveBeenCalled();
         });
 
+        it('should return 403 for any role when empty roles array is provided', () => {
+            const req = { user: { role: 'admin' } } as any;
+            const res = mockResponse();
+            const next = jest.fn();
 
+            const middleware = authorize(); // No roles specified
+            middleware(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(403);
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should respond with correct error body on 403', () => {
+            const req = { user: { role: 'guest' } } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            const middleware = authorize('admin');
+            middleware(req, res, next);
+
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'You do not have permission to access this resource.',
+            }));
+        });
+
+        it('should return 401 with correct body when req.user is missing', () => {
+            const req = {} as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            const middleware = authorize('admin');
+            middleware(req, res, next);
+
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'Authentication required.',
+            }));
+        });
+
+        it('should return 403 for a user with an empty string role', () => {
+            const req = { user: { role: '' } } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            const middleware = authorize('admin', 'staff', 'guest');
+            middleware(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(403);
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should call next() with no arguments on successful authorization', () => {
+            const req = { user: { role: 'admin' } } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            const middleware = authorize('admin');
+            middleware(req, res, next);
+
+            expect(next).toHaveBeenCalledWith();
+            expect(next).toHaveBeenCalledTimes(1);
+        });
+
+        it('should allow all three roles when all three are listed', () => {
+            const roles = ['guest', 'staff', 'admin'] as const;
+
+            roles.forEach(role => {
+                const req = { user: { role } } as any;
+                const res = mockResponse();
+                const next = jest.fn();
+
+                const middleware = authorize('guest', 'staff', 'admin');
+                middleware(req, res, next);
+
+                expect(next).toHaveBeenCalled();
+                expect(res.status).not.toHaveBeenCalled();
+            });
+        });
     });
 });
