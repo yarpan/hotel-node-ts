@@ -22,7 +22,7 @@ describe('Auth Middleware - Edge Cases', () => {
 
         it('should return 401 if token is expired', async () => {
             const { user } = await createTestUser();
-            
+
             // Create an expired token
             const expiredToken = jwt.sign(
                 { userId: user.id, role: user.role },
@@ -46,7 +46,7 @@ describe('Auth Middleware - Edge Cases', () => {
 
         it('should return 401 if token has invalid signature', async () => {
             const { user } = await createTestUser();
-            
+
             // Create a token with wrong secret
             const invalidToken = jwt.sign(
                 { userId: user.id, role: user.role },
@@ -143,7 +143,159 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(next).not.toHaveBeenCalled();
         });
 
+        it('should return 401 if authorization header is completely absent', async () => {
+            const req = { headers: {} } as any;
+            const res = mockResponse();
+            const next = jest.fn();
 
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'No token provided. Please authenticate.',
+            }));
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should return 401 if Bearer prefix is present but token part is empty', async () => {
+            const req = {
+                headers: { authorization: 'Bearer ' }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should return 401 if token is a garbage non-JWT string', async () => {
+            const req = {
+                headers: { authorization: 'Bearer not.a.jwt' }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should return 500 if JWT_SECRET is not defined', async () => {
+            const original = process.env.JWT_SECRET;
+            delete process.env.JWT_SECRET;
+
+            const req = {
+                headers: { authorization: 'Bearer sometoken' }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(next).not.toHaveBeenCalled();
+
+            process.env.JWT_SECRET = original;
+        });
+
+        it('should attach user to request and call next() on valid token', async () => {
+            const { user, token } = await createTestUser('guest');
+            const req = {
+                headers: { authorization: `Bearer ${token}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(next).toHaveBeenCalled();
+            expect(req.user).toBeDefined();
+            expect(req.user.id).toBe(user.id);
+            expect(res.status).not.toHaveBeenCalled();
+        });
+
+        it('should return 401 if "bearer" prefix is lowercase', async () => {
+            const { token } = await createTestUser();
+            const req = {
+                headers: { authorization: `bearer ${token}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should respond with "Token has expired." message for expired tokens', async () => {
+            const { user } = await createTestUser();
+            const expiredToken = jwt.sign(
+                { userId: user.id, role: user.role },
+                process.env.JWT_SECRET!,
+                { expiresIn: '-1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${expiredToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'Token has expired.',
+            }));
+        });
+
+        it('should respond with "Invalid token." message for tampered token signature', async () => {
+            const { user } = await createTestUser();
+            const invalidToken = jwt.sign(
+                { userId: user.id, role: user.role },
+                'wrong-secret',
+                { expiresIn: '1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${invalidToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'Invalid token.',
+            }));
+        });
+
+        it('should respond with "Invalid token. User not found." when userId in token has no matching DB record', async () => {
+            const fakeToken = jwt.sign(
+                { userId: 999999, role: 'guest' },
+                process.env.JWT_SECRET!,
+                { expiresIn: '1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${fakeToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'Invalid token. User not found.',
+            }));
+        });
 
 
 
@@ -358,6 +510,35 @@ describe('Auth Middleware - Edge Cases', () => {
                 expect(next).toHaveBeenCalled();
                 expect(res.status).not.toHaveBeenCalled();
             });
+        });
+
+        it('should grant access when the allowed list contains duplicate roles', () => {
+            const req = { user: { role: 'admin' } } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            const middleware = authorize('admin', 'admin');
+            middleware(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(res.status).not.toHaveBeenCalled();
+        });
+
+        it('should be stateless — calling the returned middleware twice on different requests works independently', () => {
+            const middleware = authorize('staff');
+
+            const allowedReq = { user: { role: 'staff' } } as any;
+            const allowedRes = mockResponse();
+            const allowedNext = jest.fn();
+            middleware(allowedReq, allowedRes, allowedNext);
+            expect(allowedNext).toHaveBeenCalled();
+
+            const deniedReq = { user: { role: 'guest' } } as any;
+            const deniedRes = mockResponse();
+            const deniedNext = jest.fn();
+            middleware(deniedReq, deniedRes, deniedNext);
+            expect(deniedRes.status).toHaveBeenCalledWith(403);
+            expect(deniedNext).not.toHaveBeenCalled();
         });
     });
 });
