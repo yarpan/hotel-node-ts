@@ -297,7 +297,37 @@ describe('Auth Middleware - Edge Cases', () => {
             }));
         });
 
+        it('should return 401 and not set req.user when token contains userId: 0', async () => {
+            const zeroIdToken = jwt.sign(
+                { userId: 0, role: 'guest' },
+                process.env.JWT_SECRET!,
+                { expiresIn: '1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${zeroIdToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
 
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(req.user).toBeUndefined();
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should not set req.user when authentication fails due to invalid token', async () => {
+            const req = {
+                headers: { authorization: 'Bearer not.a.valid.jwt' }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(req.user).toBeUndefined();
+        });
 
     });
 
