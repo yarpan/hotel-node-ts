@@ -80,5 +80,35 @@ describe('Auth Middleware', () => {
             }));
             expect(next).not.toHaveBeenCalled();
         });
+
+        it('should not set req.user when authentication fails', async () => {
+            const req = { headers: {} } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+        
+            await authenticate(req, res, next);
+        
+            expect(req.user).toBeUndefined();
+        });
+        
+        it('should return correct JSON body for an expired token', async () => {
+            const { user } = await createTestUser();
+            const expiredToken = jwt.sign(
+                { userId: user.id, role: user.role },
+                process.env.JWT_SECRET!,
+                { expiresIn: '-1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${expiredToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+        
+            await authenticate(req, res, next);
+        
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'Token has expired.',
+            }));
     });
 });
