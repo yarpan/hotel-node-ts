@@ -329,6 +329,40 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(req.user).toBeUndefined();
         });
 
+        it('should return 401 if header uses a tab instead of a space after Bearer', async () => {
+            const { token } = await createTestUser();
+            const req = {
+                headers: { authorization: `Bearer\t${token}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should return 500 for a not-yet-valid (nbf) token', async () => {
+            const { user } = await createTestUser();
+            const futureToken = jwt.sign(
+                { userId: user.id, role: user.role },
+                process.env.JWT_SECRET!,
+                { notBefore: '1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${futureToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            // NotBeforeError is not handled explicitly, so it falls through to 500
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(next).not.toHaveBeenCalled();
+        });
+
     });
 
     describe('authorize - Edge Cases', () => {
