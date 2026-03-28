@@ -218,6 +218,34 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(res.status).not.toHaveBeenCalled();
         });
 
+        it('should authenticate an admin user and preserve their role on req.user', async () => {
+            const { user, token } = await createTestUser('admin');
+            const req = {
+                headers: { authorization: `Bearer ${token}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(next).toHaveBeenCalled();
+            expect(req.user.role).toBe('admin');
+        });
+
+        it('should authenticate a staff user and preserve their role on req.user', async () => {
+            const { user, token } = await createTestUser('staff');
+            const req = {
+                headers: { authorization: `Bearer ${token}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(next).toHaveBeenCalled();
+            expect(req.user.role).toBe('staff');
+        });
+
         it('should return 401 if "bearer" prefix is lowercase', async () => {
             const { token } = await createTestUser();
             const req = {
