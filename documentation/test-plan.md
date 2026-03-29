@@ -7,7 +7,7 @@ Target file for all items: `backend/tests/unit/middleware/auth.edge-cases.test.t
 
 ## `authenticate` — 10 pending tests
 
-### 1. Generic 500 response body
+### ~~1. Generic 500 response body~~ ✅ DONE
 **Test name:** `should respond with "Authentication failed." body on the generic 500 path`  
 **Why missing:** The nbf test (line 374) asserts `status 500` but never verifies the JSON body.  
 The catch-all branch `res.status(500).json({ status: 'error', message: 'Authentication failed.' })` has no body assertion anywhere.  
@@ -16,7 +16,7 @@ The catch-all branch `res.status(500).json({ status: 'error', message: 'Authenti
 
 ---
 
-### 2. Empty-string authorization header — response body
+### ~~2. Empty-string authorization header — response body~~ ✅ DONE
 **Test name:** `should respond with "No token provided. Please authenticate." body for an empty string authorization header`  
 **Why missing:** The empty-string test (line 71) only asserts `status 401`. The exact body message is only verified for the *completely absent* header (line 146), not for the empty-string case.  
 **Trigger:** `headers: { authorization: '' }`  

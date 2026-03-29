@@ -83,6 +83,22 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(next).not.toHaveBeenCalled();
         });
 
+        it('should respond with "No token provided. Please authenticate." body for an empty string authorization header', async () => {
+            const req = {
+                headers: { authorization: '' }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'No token provided. Please authenticate.',
+            }));
+        });
+
         it('should return 500 if token payload is missing userId', async () => {
             // Create a token without userId
             const invalidToken = jwt.sign(
@@ -389,6 +405,28 @@ describe('Auth Middleware - Edge Cases', () => {
             // NotBeforeError is not handled explicitly, so it falls through to 500
             expect(res.status).toHaveBeenCalledWith(500);
             expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should respond with "Authentication failed." body on the generic 500 path', async () => {
+            const { user } = await createTestUser();
+            const futureToken = jwt.sign(
+                { userId: user.id, role: user.role },
+                process.env.JWT_SECRET!,
+                { notBefore: '1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${futureToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'Authentication failed.',
+            }));
         });
 
     });
