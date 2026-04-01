@@ -235,7 +235,7 @@ describe('Auth Middleware - Edge Cases', () => {
         });
 
         it('should authenticate an admin user and preserve their role on req.user', async () => {
-            const { user, token } = await createTestUser('admin');
+            const { token } = await createTestUser('admin');
             const req = {
                 headers: { authorization: `Bearer ${token}` }
             } as any;
@@ -249,7 +249,7 @@ describe('Auth Middleware - Edge Cases', () => {
         });
 
         it('should authenticate a staff user and preserve their role on req.user', async () => {
-            const { user, token } = await createTestUser('staff');
+            const { token } = await createTestUser('staff');
             const req = {
                 headers: { authorization: `Bearer ${token}` }
             } as any;
@@ -427,6 +427,42 @@ describe('Auth Middleware - Edge Cases', () => {
                 status: 'error',
                 message: 'Authentication failed.',
             }));
+        });
+
+        it('should respond with "Invalid token." body when Bearer is present but the token part is an empty string', async () => {
+            const req = {
+                headers: { authorization: 'Bearer ' }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'Invalid token.',
+            }));
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should return 401 for a token containing a negative userId', async () => {
+            const negativeIdToken = jwt.sign(
+                { userId: -1, role: 'guest' },
+                process.env.JWT_SECRET!,
+                { expiresIn: '1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${negativeIdToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(req.user).toBeUndefined();
+            expect(next).not.toHaveBeenCalled();
         });
 
     });

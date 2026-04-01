@@ -24,7 +24,7 @@ The catch-all branch `res.status(500).json({ status: 'error', message: 'Authenti
 
 ---
 
-### 3. `Bearer ` with empty token — response body distinction
+### ~~3. `Bearer ` with empty token — response body distinction~~ ✅ DONE
 **Test name:** `should respond with "Invalid token." body when Bearer is present but the token part is an empty string`  
 **Why missing:** `'Bearer '` passes the `startsWith('Bearer ')` guard, then `authHeader.split(' ')[1]` yields `''`, and `jwt.verify('')` throws `JsonWebTokenError` → body is `"Invalid token."`, **not** `"No token provided."`. Line 161 only checks the status; this message distinction is unverified.  
 **Trigger:** `headers: { authorization: 'Bearer ' }`  
@@ -32,7 +32,7 @@ The catch-all branch `res.status(500).json({ status: 'error', message: 'Authenti
 
 ---
 
-### 4. Negative userId in token
+### ~~4. Negative userId in token~~ ✅ DONE
 **Test name:** `should return 401 for a token containing a negative userId`  
 **Why missing:** `userId: 0` is covered (line 328). `userId: -1` is a distinct case — a valid JWT, but `prisma.user.findUnique({ where: { id: -1 } })` returns `null` → user-not-found path.  
 **Trigger:** `jwt.sign({ userId: -1, role: 'guest' }, JWT_SECRET, { expiresIn: '1h' })`  

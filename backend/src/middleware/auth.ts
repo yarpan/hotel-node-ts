@@ -35,6 +35,14 @@ export const authenticate = async (
 
         const decoded = jwt.verify(token, jwtSecret) as { userId: number };
 
+        if (!decoded.userId || decoded.userId <= 0) {
+            res.status(401).json({
+                status: 'error',
+                message: 'Invalid token. User not found.',
+            });
+            return;
+        }
+
         // Find user
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId }
