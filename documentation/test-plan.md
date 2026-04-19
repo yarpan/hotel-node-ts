@@ -40,7 +40,7 @@ The catch-all branch `res.status(500).json({ status: 'error', message: 'Authenti
 
 ---
 
-### 5. `next()` called exactly once on success
+### ~~5. `next()` called exactly once on success~~ ✅ DONE
 **Test name:** `should call next() exactly once on successful authentication`  
 **Why missing:** Valid-token tests assert `next` was called but none assert `toHaveBeenCalledTimes(1)`, leaving double-invocation undetected.  
 **Trigger:** Valid token for any role.  
@@ -48,7 +48,7 @@ The catch-all branch `res.status(500).json({ status: 'error', message: 'Authenti
 
 ---
 
-### 6. `"Bearer"` with no trailing space
+### ~~6. `"Bearer"` with no trailing space~~ ✅ DONE
 **Test name:** `should return 401 for a header value of exactly "Bearer" with no trailing space`  
 **Why missing:** `'Bearer'.startsWith('Bearer ')` is `false` (the space after `Bearer` is part of the guard). This is distinct from `'bearer '` (lowercase, line 249), `'Bearer '` (with trailing space, line 161), and `'Bearer\t'` (tab, line 360). None of these cover the exact string `'Bearer'`.  
 **Trigger:** `headers: { authorization: 'Bearer' }`  
@@ -56,7 +56,7 @@ The catch-all branch `res.status(500).json({ status: 'error', message: 'Authenti
 
 ---
 
-### 7. Whitespace-only authorization header
+### ~~7. Whitespace-only authorization header~~ ✅ DONE
 **Test name:** `should return 401 for an authorization header containing only whitespace`  
 **Why missing:** `'   '.startsWith('Bearer ')` is `false`, so the "no token" guard fires. Currently only `''` (empty string) and complete absence are tested. Whitespace-only is a separate falsy-ish case that a client could send accidentally.  
 **Trigger:** `headers: { authorization: '   ' }`  

@@ -465,6 +465,53 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(next).not.toHaveBeenCalled();
         });
 
+        it('should call next() exactly once on successful authentication', async () => {
+            const { token } = await createTestUser('guest');
+            const req = {
+                headers: { authorization: `Bearer ${token}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+        });
+
+        it('should return 401 for a header value of exactly "Bearer" with no trailing space', async () => {
+            const req = {
+                headers: { authorization: 'Bearer' }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'No token provided. Please authenticate.',
+            }));
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should return 401 for an authorization header containing only whitespace', async () => {
+            const req = {
+                headers: { authorization: '   ' }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'No token provided. Please authenticate.',
+            }));
+            expect(next).not.toHaveBeenCalled();
+        });
+
     });
 
     describe('authorize - Edge Cases', () => {
