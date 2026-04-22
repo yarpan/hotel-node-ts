@@ -4,7 +4,6 @@ import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
-// Public routes
 /**
  * @swagger
  * tags:
@@ -24,30 +23,51 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - email
- *               - password
- *               - firstName
- *               - lastName
+ *             required: [email, password, profile]
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
  *               password:
  *                 type: string
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
+ *                 minLength: 6
+ *               profile:
+ *                 type: object
+ *                 required: [firstName, lastName, phone]
+ *                 properties:
+ *                   firstName: { type: string }
+ *                   lastName:  { type: string }
+ *                   phone:     { type: string }
+ *                   address:
+ *                     type: object
+ *                     properties:
+ *                       street:  { type: string }
+ *                       city:    { type: string }
+ *                       state:   { type: string }
+ *                       country: { type: string }
+ *                       zipCode: { type: string }
  *     responses:
  *       201:
  *         description: User registered successfully
- *       400:
- *         description: Invalid input or email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user:  { $ref: '#/components/schemas/User' }
+ *                         token: { type: string }
+ *       409:
+ *         $ref: '#/components/responses/Conflict'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.post('/register', register);
+
 /**
  * @swagger
  * /api/auth/login:
@@ -60,9 +80,7 @@ router.post('/register', register);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - email
- *               - password
+ *             required: [email, password]
  *             properties:
  *               email:
  *                 type: string
@@ -75,18 +93,24 @@ router.post('/register', register);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user:  { $ref: '#/components/schemas/User' }
+ *                         token: { type: string }
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
  *       401:
- *         description: Invalid credentials
+ *         $ref: '#/components/responses/Unauthorized'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.post('/login', login);
 
-// Protected routes
 /**
  * @swagger
  * /api/auth/me:
@@ -101,11 +125,18 @@ router.post('/login', login);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user: { $ref: '#/components/schemas/User' }
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get('/me', authenticate, getCurrentUser);
 

@@ -15,7 +15,6 @@ const router = Router();
 // All booking routes require authentication
 router.use(authenticate);
 
-// Guest and Admin routes
 /**
  * @swagger
  * tags:
@@ -36,22 +35,41 @@ router.use(authenticate);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Booking'
+ *             type: object
+ *             required: [roomId, checkInDate, checkOutDate, numberOfGuests]
+ *             properties:
+ *               roomId:          { type: integer }
+ *               checkInDate:     { type: string, format: date-time }
+ *               checkOutDate:    { type: string, format: date-time }
+ *               numberOfGuests:  { type: integer, minimum: 1 }
+ *               specialRequests: { type: string }
  *     responses:
  *       201:
  *         description: The booking was successfully created
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Booking'
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         booking: { $ref: '#/components/schemas/Booking' }
  *       400:
- *         description: Invalid input
+ *         $ref: '#/components/responses/ValidationError'
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       409:
+ *         $ref: '#/components/responses/Conflict'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.post('/', createBooking);
+
 /**
  * @swagger
  * /api/bookings:
@@ -67,15 +85,23 @@ router.post('/', createBooking);
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Booking'
+ *               type: object
+ *               properties:
+ *                 status:  { type: string, example: success }
+ *                 results: { type: integer }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     bookings:
+ *                       type: array
+ *                       items: { $ref: '#/components/schemas/Booking' }
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
-router.get('/', getAllBookings); // Returns user's own bookings for guests, all bookings for admin
+router.get('/', getAllBookings);
+
 /**
  * @swagger
  * /api/bookings/{id}:
@@ -87,25 +113,34 @@ router.get('/', getAllBookings); // Returns user's own bookings for guests, all 
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
+ *         schema: { type: integer, minimum: 1 }
  *         required: true
  *         description: The booking ID
  *     responses:
  *       200:
- *         description: The booking description
+ *         description: The booking details
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Booking'
- *       404:
- *         description: Booking not found
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         booking: { $ref: '#/components/schemas/Booking' }
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get('/:id', getBookingById);
+
 /**
  * @swagger
  * /api/bookings/{id}:
@@ -117,8 +152,7 @@ router.get('/:id', getBookingById);
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
+ *         schema: { type: integer, minimum: 1 }
  *         required: true
  *         description: The booking ID
  *     requestBody:
@@ -126,20 +160,40 @@ router.get('/:id', getBookingById);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Booking'
+ *             type: object
+ *             properties:
+ *               checkInDate:     { type: string, format: date-time }
+ *               checkOutDate:    { type: string, format: date-time }
+ *               numberOfGuests:  { type: integer, minimum: 1 }
+ *               specialRequests: { type: string }
+ *               status:
+ *                 type: string
+ *                 enum: [pending, confirmed, checked_in, checked_out, cancelled]
  *     responses:
  *       200:
  *         description: The booking was updated
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Booking'
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         booking: { $ref: '#/components/schemas/Booking' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
- *         description: Booking not found
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.put('/:id', updateBooking);
+
 /**
  * @swagger
  * /api/bookings/{id}:
@@ -151,71 +205,113 @@ router.put('/:id', updateBooking);
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
+ *         schema: { type: integer, minimum: 1 }
  *         required: true
  *         description: The booking ID
  *     responses:
  *       200:
  *         description: The booking was cancelled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         booking: { $ref: '#/components/schemas/Booking' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
- *         description: Booking not found
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.delete('/:id', cancelBooking);
 
-// Admin-only routes
 /**
  * @swagger
  * /api/bookings/{id}/check-in:
  *   post:
- *     summary: Check-in a guest
+ *     summary: Check-in a guest (Admin/Staff only)
  *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
+ *         schema: { type: integer, minimum: 1 }
  *         required: true
  *         description: The booking ID
  *     responses:
  *       200:
  *         description: Checked in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         booking: { $ref: '#/components/schemas/Booking' }
  *       400:
- *         description: Invalid booking status or too early
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
- *         description: Booking not found
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.post('/:id/check-in', authorize('admin', 'staff'), checkIn);
+
 /**
  * @swagger
  * /api/bookings/{id}/check-out:
  *   post:
- *     summary: Check-out a guest
+ *     summary: Check-out a guest (Admin/Staff only)
  *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
+ *         schema: { type: integer, minimum: 1 }
  *         required: true
  *         description: The booking ID
  *     responses:
  *       200:
  *         description: Checked out successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         booking: { $ref: '#/components/schemas/Booking' }
  *       400:
- *         description: Invalid booking status
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
- *         description: Booking not found
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.post('/:id/check-out', authorize('admin', 'staff'), checkOut);
 

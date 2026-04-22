@@ -30,7 +30,24 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Liveness probe
+ *     tags: [Ops]
+ *     responses:
+ *       200:
+ *         description: Server is running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:    { type: string, example: success }
+ *                 message:   { type: string }
+ *                 timestamp: { type: string, format: date-time }
+ */
 app.get('/health', (_req: Request, res: Response) => {
     res.status(200).json({
         status: 'success',

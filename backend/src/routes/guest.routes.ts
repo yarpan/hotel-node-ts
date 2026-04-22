@@ -9,7 +9,7 @@ import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
 
-// All routes require authentication and admin role
+// All routes require authentication and admin/staff role
 router.use(authenticate, authorize('admin', 'staff'));
 
 /**
@@ -33,17 +33,25 @@ router.use(authenticate, authorize('admin', 'staff'));
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *               type: object
+ *               properties:
+ *                 status:  { type: string, example: success }
+ *                 results: { type: integer }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     guests:
+ *                       type: array
+ *                       items: { $ref: '#/components/schemas/User' }
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
  *       403:
- *         description: Forbidden
+ *         $ref: '#/components/responses/Forbidden'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get('/', getAllGuests);
+
 /**
  * @swagger
  * /api/guests/{id}:
@@ -55,8 +63,7 @@ router.get('/', getAllGuests);
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
+ *         schema: { type: integer, minimum: 1 }
  *         required: true
  *         description: The guest ID
  *     responses:
@@ -65,17 +72,25 @@ router.get('/', getAllGuests);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
- *       404:
- *         description: Guest not found
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         guest: { $ref: '#/components/schemas/User' }
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
  *       403:
- *         description: Forbidden
+ *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get('/:id', getGuestById);
+
 /**
  * @swagger
  * /api/guests/{id}:
@@ -87,8 +102,7 @@ router.get('/:id', getGuestById);
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
+ *         schema: { type: integer, minimum: 1 }
  *         required: true
  *         description: The guest ID
  *     requestBody:
@@ -96,20 +110,44 @@ router.get('/:id', getGuestById);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             properties:
+ *               firstName: { type: string }
+ *               lastName:  { type: string }
+ *               phone:     { type: string }
+ *               address:
+ *                 type: object
+ *                 properties:
+ *                   street:  { type: string }
+ *                   city:    { type: string }
+ *                   state:   { type: string }
+ *                   country: { type: string }
+ *                   zipCode: { type: string }
  *     responses:
  *       200:
  *         description: Guest updated
- *       404:
- *         description: Guest not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessEnvelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         guest: { $ref: '#/components/schemas/User' }
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
  *       403:
- *         description: Forbidden
+ *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.put('/:id', updateGuest);
+
 /**
  * @swagger
  * /api/guests/{id}/bookings:
@@ -121,8 +159,7 @@ router.put('/:id', updateGuest);
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
+ *         schema: { type: integer, minimum: 1 }
  *         required: true
  *         description: The guest ID
  *     responses:
@@ -131,17 +168,24 @@ router.put('/:id', updateGuest);
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Booking'
- *       404:
- *         description: Guest not found
+ *               type: object
+ *               properties:
+ *                 status:  { type: string, example: success }
+ *                 results: { type: integer }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     bookings:
+ *                       type: array
+ *                       items: { $ref: '#/components/schemas/Booking' }
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
  *       403:
- *         description: Forbidden
+ *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get('/:id/bookings', getGuestBookings);
 
