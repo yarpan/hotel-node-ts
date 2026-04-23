@@ -148,7 +148,7 @@ router.get('/:id', getRoomById);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Room'
+ *             $ref: '#/components/schemas/CreateRoomInput'
  *     responses:
  *       201:
  *         description: Room created
@@ -191,7 +191,7 @@ router.post('/', authenticate, authorize('admin'), createRoom);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Room'
+ *             $ref: '#/components/schemas/UpdateRoomInput'
  *     responses:
  *       200:
  *         description: Room updated

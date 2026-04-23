@@ -101,6 +101,33 @@ const options: swaggerJsdoc.Options = {
                         updatedAt:     { type: 'string', format: 'date-time' },
                     },
                 },
+                CreateRoomInput: {
+                    type: 'object',
+                    required: ['roomNumber', 'pricePerNight', 'description'],
+                    properties: {
+                        roomNumber:    { type: 'string' },
+                        type:          { type: 'string', enum: ['single', 'double', 'suite', 'deluxe', 'presidential'] },
+                        capacity:      { type: 'integer', minimum: 1, default: 1 },
+                        pricePerNight: { type: 'number', format: 'float' },
+                        amenities:     { type: 'array', items: { type: 'string' } },
+                        photos:        { type: 'array', items: { type: 'string' } },
+                        description:   { type: 'string' },
+                        status:        { type: 'string', enum: ['available', 'occupied', 'maintenance'] },
+                    },
+                },
+                UpdateRoomInput: {
+                    type: 'object',
+                    properties: {
+                        roomNumber:    { type: 'string' },
+                        type:          { type: 'string', enum: ['single', 'double', 'suite', 'deluxe', 'presidential'] },
+                        capacity:      { type: 'integer', minimum: 1 },
+                        pricePerNight: { type: 'number', format: 'float' },
+                        amenities:     { type: 'array', items: { type: 'string' } },
+                        photos:        { type: 'array', items: { type: 'string' } },
+                        description:   { type: 'string' },
+                        status:        { type: 'string', enum: ['available', 'occupied', 'maintenance'] },
+                    },
+                },
                 Booking: {
                     type: 'object',
                     properties: {
