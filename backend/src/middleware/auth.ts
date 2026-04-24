@@ -35,7 +35,11 @@ export const authenticate = async (
 
         const decoded = jwt.verify(token, jwtSecret) as { userId: number };
 
-        if (!decoded.userId || decoded.userId <= 0) {
+        if (decoded.userId === undefined || decoded.userId === null) {
+            throw new Error('Missing userId in token payload');
+        }
+
+        if (decoded.userId <= 0) {
             res.status(401).json({
                 status: 'error',
                 message: 'Invalid token. User not found.',

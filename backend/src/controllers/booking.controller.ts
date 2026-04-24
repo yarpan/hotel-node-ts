@@ -21,6 +21,12 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
             return;
         }
 
+        // Validate guests
+        if (numberOfGuests <= 0) {
+            res.status(400).json({ status: 'error', message: 'Number of guests must be at least 1' });
+            return;
+        }
+
         // Check room capacity
         if (numberOfGuests > room.capacity) {
             res.status(400).json({
@@ -33,6 +39,18 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         // Check for conflicting bookings
         const checkIn = new Date(checkInDate);
         const checkOut = new Date(checkOutDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (checkIn < today) {
+            res.status(400).json({ status: 'error', message: 'Check-in date cannot be in the past' });
+            return;
+        }
+
+        if (checkOut <= checkIn) {
+            res.status(400).json({ status: 'error', message: 'Check-out date must be after check-in date' });
+            return;
+        }
 
         const conflictingBooking = await prisma.booking.findFirst({
             where: {
@@ -135,6 +153,10 @@ export const getAllBookings = async (req: AuthRequest, res: Response): Promise<v
 export const getBookingById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const id = Number(req.params.id);
+        if (isNaN(id)) {
+            res.status(404).json({ status: 'error', message: 'Booking not found' });
+            return;
+        }
         const booking = await prisma.booking.findUnique({
             where: { id },
             include: {
@@ -175,6 +197,10 @@ export const getBookingById = async (req: AuthRequest, res: Response): Promise<v
 export const updateBooking = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const id = Number(req.params.id);
+        if (isNaN(id)) {
+            res.status(404).json({ status: 'error', message: 'Booking not found' });
+            return;
+        }
         const booking = await prisma.booking.findUnique({ where: { id } });
 
         if (!booking) {
@@ -216,6 +242,10 @@ export const updateBooking = async (req: AuthRequest, res: Response): Promise<vo
 export const cancelBooking = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const id = Number(req.params.id);
+        if (isNaN(id)) {
+            res.status(404).json({ status: 'error', message: 'Booking not found' });
+            return;
+        }
         const booking = await prisma.booking.findUnique({ where: { id } });
 
         if (!booking) {
@@ -231,6 +261,15 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
             res.status(403).json({
                 status: 'error',
                 message: 'You can only cancel your own bookings',
+            });
+            return;
+        }
+
+        // Check if booking can be cancelled
+        if (['cancelled', 'checked_in', 'checked_out'].includes(booking.status)) {
+            res.status(400).json({
+                status: 'error',
+                message: `Booking cannot be cancelled because it is ${booking.status.replace('_', ' ')}`,
             });
             return;
         }

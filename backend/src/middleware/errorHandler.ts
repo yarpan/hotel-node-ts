@@ -11,6 +11,11 @@ export const errorHandler = (
     res: Response,
     _next: NextFunction
 ): void => {
+    if (!err) {
+        res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+        return;
+    }
+
     const statusCode = err.statusCode || 500;
     const message = err.message || 'Internal Server Error';
 
@@ -19,19 +24,10 @@ export const errorHandler = (
         console.error('❌ Error:', err);
     }
 
-    // Mongoose validation error
-    if (err.name === 'ValidationError') {
-        res.status(400).json({
-            status: 'error',
-            message: 'Validation failed',
-            errors: err.errors,
-        });
-        return;
-    }
-
-    // Mongoose duplicate key error
-    if ((err as any).code === 11000) {
-        const field = Object.keys((err as any).keyPattern)[0];
+    // Prisma Unique constraint failed (e.g., Duplicate email/roomNumber)
+    if ((err as any).code === 'P2002') {
+        const target = (err as any).meta?.target;
+        const field = Array.isArray(target) ? target.join(', ') : 'Field';
         res.status(409).json({
             status: 'error',
             message: `${field} already exists`,
@@ -39,11 +35,11 @@ export const errorHandler = (
         return;
     }
 
-    // Mongoose cast error (invalid ObjectId)
-    if (err.name === 'CastError') {
-        res.status(400).json({
+    // Prisma Record not found (e.g., Updating/Deleting non-existent ID)
+    if ((err as any).code === 'P2025') {
+        res.status(404).json({
             status: 'error',
-            message: 'Invalid ID format',
+            message: 'Resource not found',
         });
         return;
     }

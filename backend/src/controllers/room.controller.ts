@@ -4,12 +4,13 @@ import prisma from '../utils/prismaClient';
 // Get all rooms
 export const getAllRooms = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { type, status, minPrice, maxPrice } = req.query;
+        const { type, status, minPrice, maxPrice, capacity } = req.query;
 
         // Build filter
         const where: any = {};
         if (type) where.type = type;
         if (status) where.status = status;
+        if (capacity) where.capacity = { gte: Number(capacity) };
         
         if (minPrice || maxPrice) {
             where.pricePerNight = {};
@@ -36,6 +37,11 @@ export const getAllRooms = async (req: Request, res: Response): Promise<void> =>
 export const getRoomById = async (req: Request, res: Response): Promise<void> => {
     try {
         const id = Number(req.params.id);
+        if (isNaN(id)) {
+            res.status(404).json({ status: 'error', message: 'Room not found' });
+            return;
+        }
+        
         const room = await prisma.room.findUnique({ where: { id } });
 
         if (!room) {
@@ -81,8 +87,8 @@ export const searchAvailableRooms = async (req: Request, res: Response): Promise
                             status: { in: ['confirmed', 'checked_in' as any] },
                             OR: [
                                 {
-                                    checkInDate: { lte: checkOutDate },
-                                    checkOutDate: { gte: checkInDate },
+                                    checkInDate: { lt: checkOutDate },
+                                    checkOutDate: { gt: checkInDate },
                                 },
                             ],
                         },
@@ -126,6 +132,13 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
             data: { room },
         });
     } catch (error: any) {
+        if (error.code === 'P2002') {
+            res.status(409).json({
+                status: 'error',
+                message: 'Room already exists',
+            });
+            return;
+        }
         res.status(500).json({
             status: 'error',
             message: error.message || 'Failed to create room',
@@ -137,6 +150,10 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
 export const updateRoom = async (req: Request, res: Response): Promise<void> => {
     try {
         const id = Number(req.params.id);
+        if (isNaN(id)) {
+            res.status(404).json({ status: 'error', message: 'Room not found' });
+            return;
+        }
         const room = await prisma.room.update({
             where: { id },
             data: req.body,
@@ -166,6 +183,10 @@ export const updateRoom = async (req: Request, res: Response): Promise<void> => 
 export const deleteRoom = async (req: Request, res: Response): Promise<void> => {
     try {
         const id = Number(req.params.id);
+        if (isNaN(id)) {
+            res.status(404).json({ status: 'error', message: 'Room not found' });
+            return;
+        }
         await prisma.room.delete({ where: { id } });
 
         res.status(200).json({
