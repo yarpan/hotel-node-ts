@@ -1,7 +1,46 @@
 import prisma from '../src/utils/prismaClient';
 
+import bcrypt from 'bcryptjs';
+
 async function main() {
     console.log('🌱 Seeding database...\n');
+
+    // ── Users ────────────────────────────────────────────────────
+    const salt = await bcrypt.genSalt(10);
+    const password = await bcrypt.hash('password123', salt);
+
+    const users = [
+        {
+            email: 'admin@hotel.com',
+            password,
+            firstName: 'Admin',
+            lastName: 'User',
+            phone: '1234567890',
+            role: 'admin' as const,
+        },
+        {
+            email: 'guest@hotel.com',
+            password,
+            firstName: 'Guest',
+            lastName: 'User',
+            phone: '0987654321',
+            role: 'guest' as const,
+        }
+    ];
+
+    for (const user of users) {
+        const existing = await prisma.user.findUnique({
+            where: { email: user.email },
+        });
+
+        if (!existing) {
+            await prisma.user.create({ data: user });
+            console.log(`  ✓ User ${user.email} (${user.role}) created`);
+        } else {
+            console.log(`  – User ${user.email} already exists, skipping`);
+        }
+    }
+
 
     // ── Rooms ────────────────────────────────────────────────────
     const rooms = [

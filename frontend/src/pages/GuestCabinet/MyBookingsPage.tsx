@@ -20,7 +20,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import bookingService from '../../services/booking.service';
-import type { Booking, BookingStatus } from '../../types';
+import type { Booking } from '../../types';
 
 const statusColor: Record<string, 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'> = {
   pending: 'warning',
@@ -99,7 +99,7 @@ export default function MyBookingsPage() {
       <Stack spacing={2}>
         {bookings.map((booking: any) => (
           <Card
-            key={booking.id || booking._id}
+            key={booking.id}
             sx={{
               transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': { transform: 'translateY(-2px)' },
@@ -114,7 +114,7 @@ export default function MyBookingsPage() {
               >
                 <Box>
                   <Typography variant="h6">
-                    Booking #{String(booking.id || booking._id).slice(-6).toUpperCase()}
+                    Booking #{String(booking.id).padStart(6, '0')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {new Date(booking.checkInDate).toLocaleDateString()} →{' '}

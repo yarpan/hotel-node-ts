@@ -18,7 +18,7 @@ export interface UserProfile {
 export type UserRole = 'guest' | 'admin' | 'staff';
 
 export interface User {
-  id: string;
+  id: number;
   email: string;
   role: UserRole;
   profile: UserProfile;
@@ -52,7 +52,7 @@ export type RoomType = 'single' | 'double' | 'suite' | 'deluxe' | 'presidential'
 export type RoomStatus = 'available' | 'occupied' | 'maintenance';
 
 export interface Room {
-  _id: string;
+  id: number;
   roomNumber: string;
   type: RoomType;
   capacity: number;
@@ -80,9 +80,9 @@ export type BookingStatus = 'pending' | 'confirmed' | 'checked-in' | 'checked-ou
 export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 
 export interface Booking {
-  _id: string;
-  guestId: string;
-  roomId: string | Room;
+  id: number;
+  guestId: number;
+  roomId: number | Room;
   checkInDate: string;
   checkOutDate: string;
   numberOfGuests: number;
@@ -95,7 +95,7 @@ export interface Booking {
 }
 
 export interface CreateBookingData {
-  roomId: string;
+  roomId: number;
   checkInDate: string;
   checkOutDate: string;
   numberOfGuests: number;

@@ -4,13 +4,12 @@ import {
   Stack, Chip, CircularProgress, Alert, Grid, TextField, Divider, alpha
 } from '@mui/material';
 import {
-  ArrowBack as BackIcon, Hotel as RoomIcon, People as CapacityIcon,
-  CheckCircle as CheckIcon, AttachMoney as MoneyIcon
+  ArrowBack as BackIcon, Hotel as RoomIcon, CheckCircle as CheckIcon
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import roomService from '../../services/room.service';
 import bookingService from '../../services/booking.service';
-import type { Room } from '../../types';
+import type { Room, CreateBookingData } from '../../types';
 
 export default function RoomDetailsPage() {
   const navigate = useNavigate();
@@ -45,13 +44,14 @@ export default function RoomDetailsPage() {
     setBookingLoading(true);
 
     try {
-      await bookingService.createBooking({
-        roomId: room.id || room._id || id!,
+      const bookingData: CreateBookingData = {
+        roomId: Number(room.id || id),
         checkInDate: new Date(checkIn).toISOString(),
         checkOutDate: new Date(checkOut).toISOString(),
         numberOfGuests: guests,
         specialRequests: requests
-      });
+      };
+      await bookingService.createBooking(bookingData);
       setBookingSuccess(true);
       setTimeout(() => {
         navigate('/dashboard/bookings');
@@ -105,7 +105,7 @@ export default function RoomDetailsPage() {
 
       <Grid container spacing={4}>
         {/* Left Column: Room Details */}
-        <Grid item xs={12} md={7}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Typography variant="h3" sx={{ fontFamily: '"Playfair Display", serif', mb: 1 }}>
             Room {room.roomNumber}
           </Typography>
@@ -139,7 +139,7 @@ export default function RoomDetailsPage() {
               <Typography variant="h6" sx={{ mb: 2 }}>Amenities</Typography>
               <Grid container spacing={2}>
                 {room.amenities?.map((amenity, idx) => (
-                  <Grid item xs={6} sm={4} key={idx}>
+                  <Grid size={{ xs: 6, sm: 4 }} key={idx}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <CheckIcon sx={{ color: 'success.main', fontSize: 20 }} />
                       <Typography variant="body2">{amenity}</Typography>
@@ -152,7 +152,7 @@ export default function RoomDetailsPage() {
         </Grid>
 
         {/* Right Column: Booking Form */}
-        <Grid item xs={12} md={5}>
+        <Grid size={{ xs: 12, md: 5 }}>
           <Card sx={{ position: 'sticky', top: 24, boxShadow: 4 }}>
             <Box sx={{ p: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>

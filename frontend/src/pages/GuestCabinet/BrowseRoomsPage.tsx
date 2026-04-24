@@ -91,9 +91,9 @@ export default function BrowseRoomsPage() {
 
       <Grid container spacing={3}>
         {rooms.map((room) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room._id || room.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room.id}>
             <Card
-              onClick={() => navigate(`/dashboard/rooms/${room.id || room._id}`)}
+              onClick={() => navigate(`/dashboard/rooms/${room.id}`)}
               sx={{
                 height: '100%',
                 display: 'flex',

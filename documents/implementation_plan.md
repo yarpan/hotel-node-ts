@@ -88,3 +88,4 @@ The goal of this phase is to turn the placeholder Admin Dashboard into a fully f
 1.  **Global Axios Interceptor:** Ensure the frontend gracefully handles 401 Unauthorized errors by automatically logging the user out and redirecting to `/login` if their JWT expires.
 2.  **Toast Notifications:** Integrate a snackbar system (like `notistack` or standard MUI Snackbars) to provide global, non-intrusive success/error alerts for actions like "Room deleted" or "Profile updated".
 3.  **Loading Skeletons:** Replace standard spinners with MUI `<Skeleton>` components for smoother UI transitions during API calls on the dashboard and data tables.
+4.  **Dedicated Test Database:** Configure Jest to use a separate test database (`DATABASE_URL`) during test execution to prevent `tests/setup.ts` hooks from wiping out local development data.
