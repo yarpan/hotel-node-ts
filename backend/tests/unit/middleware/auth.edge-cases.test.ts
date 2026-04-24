@@ -512,6 +512,46 @@ describe('Auth Middleware - Edge Cases', () => {
             expect(next).not.toHaveBeenCalled();
         });
 
+        it('should return 401 if "BEARER" prefix is all uppercase', async () => {
+            const { token } = await createTestUser();
+            const req = {
+                headers: { authorization: `BEARER ${token}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'No token provided. Please authenticate.',
+            }));
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('should return 500 when token payload contains userId as a non-numeric string', async () => {
+            const stringIdToken = jwt.sign(
+                { userId: 'abc', role: 'guest' },
+                process.env.JWT_SECRET!,
+                { expiresIn: '1h' }
+            );
+            const req = {
+                headers: { authorization: `Bearer ${stringIdToken}` }
+            } as any;
+            const res = mockResponse();
+            const next = jest.fn();
+
+            await authenticate(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                status: 'error',
+                message: 'Authentication failed.',
+            }));
+            expect(next).not.toHaveBeenCalled();
+        });
+
     });
 
     describe('authorize - Edge Cases', () => {
