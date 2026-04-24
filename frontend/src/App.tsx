@@ -5,6 +5,10 @@ import LandingPage from './pages/Landing/LandingPage';
 import LoginPage from './pages/Auth/LoginPage';
 import RegisterPage from './pages/Auth/RegisterPage';
 import GuestDashboard from './pages/GuestCabinet/GuestDashboard';
+import MyBookingsPage from './pages/GuestCabinet/MyBookingsPage';
+import BrowseRoomsPage from './pages/GuestCabinet/BrowseRoomsPage';
+import RoomDetailsPage from './pages/GuestCabinet/RoomDetailsPage';
+import MyProfilePage from './pages/GuestCabinet/MyProfilePage';
 import AdminDashboard from './pages/AdminCabinet/AdminDashboard';
 
 export default function App() {
@@ -22,6 +26,38 @@ export default function App() {
           element={
             <ProtectedRoute>
               <GuestDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/bookings"
+          element={
+            <ProtectedRoute>
+              <MyBookingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/rooms"
+          element={
+            <ProtectedRoute>
+              <BrowseRoomsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/rooms/:id"
+          element={
+            <ProtectedRoute>
+              <RoomDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/profile"
+          element={
+            <ProtectedRoute>
+              <MyProfilePage />
             </ProtectedRoute>
           }
         />

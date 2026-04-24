@@ -14,10 +14,36 @@ import {
   EventNote as BookingIcon,
   People as PeopleIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const managementCards = [
+    {
+      icon: <RoomIcon sx={{ fontSize: 40 }} />,
+      title: 'Room Management',
+      desc: 'Add, edit, and manage all hotel rooms and their availability.',
+      color: 'primary.main',
+      path: '/dashboard/rooms',
+    },
+    {
+      icon: <BookingIcon sx={{ fontSize: 40 }} />,
+      title: 'Booking Management',
+      desc: 'View all bookings, handle check-ins and check-outs.',
+      color: 'info.main',
+      path: '/dashboard/bookings',
+    },
+    {
+      icon: <PeopleIcon sx={{ fontSize: 40 }} />,
+      title: 'Guest Management',
+      desc: 'View registered guests and their booking history.',
+      color: 'success.main',
+      path: '/admin/guests',
+    },
+  ];
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -50,31 +76,14 @@ export default function AdminDashboard() {
       </Typography>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 4 }}>
-        {[
-          {
-            icon: <RoomIcon sx={{ fontSize: 40 }} />,
-            title: 'Room Management',
-            desc: 'Add, edit, and manage all hotel rooms and their availability.',
-            color: 'primary.main',
-          },
-          {
-            icon: <BookingIcon sx={{ fontSize: 40 }} />,
-            title: 'Booking Management',
-            desc: 'View all bookings, handle check-ins and check-outs.',
-            color: 'info.main',
-          },
-          {
-            icon: <PeopleIcon sx={{ fontSize: 40 }} />,
-            title: 'Guest Management',
-            desc: 'View registered guests and their booking history.',
-            color: 'success.main',
-          },
-        ].map((card) => (
+        {managementCards.map((card) => (
           <Card
             key={card.title}
+            onClick={() => navigate(card.path)}
             sx={{
               flex: 1,
               cursor: 'pointer',
+              transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)',
               },

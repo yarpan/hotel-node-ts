@@ -13,10 +13,33 @@ import {
   Hotel as RoomIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function GuestDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const cards = [
+    {
+      icon: <BookingIcon sx={{ fontSize: 40 }} />,
+      title: 'My Bookings',
+      desc: 'View and manage your current and past reservations.',
+      path: '/dashboard/bookings',
+    },
+    {
+      icon: <RoomIcon sx={{ fontSize: 40 }} />,
+      title: 'Browse Rooms',
+      desc: 'Explore available rooms and make a new booking.',
+      path: '/dashboard/rooms',
+    },
+    {
+      icon: <PersonIcon sx={{ fontSize: 40 }} />,
+      title: 'My Profile',
+      desc: 'Update your personal information and preferences.',
+      path: '/dashboard/profile',
+    },
+  ];
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -51,28 +74,14 @@ export default function GuestDashboard() {
       </Typography>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-        {[
-          {
-            icon: <BookingIcon sx={{ fontSize: 40 }} />,
-            title: 'My Bookings',
-            desc: 'View and manage your current and past reservations.',
-          },
-          {
-            icon: <RoomIcon sx={{ fontSize: 40 }} />,
-            title: 'Browse Rooms',
-            desc: 'Explore available rooms and make a new booking.',
-          },
-          {
-            icon: <PersonIcon sx={{ fontSize: 40 }} />,
-            title: 'My Profile',
-            desc: 'Update your personal information and preferences.',
-          },
-        ].map((card) => (
+        {cards.map((card) => (
           <Card
             key={card.title}
+            onClick={() => navigate(card.path)}
             sx={{
               flex: 1,
               cursor: 'pointer',
+              transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)',
               },
