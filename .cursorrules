@@ -1,0 +1,15 @@
+---
+description: Global project rules
+alwaysApply: true
+---
+
+This is a Node.js hotel management TypeScript project with Playwright test automation. When working on this codebase:
+
+1. **Always follow test design & planning standards** in `.cursor/rules/ai-planning-standards.md`
+   - Governs WHAT tests to write and HOW to specify them in `*.plan.md` files
+   - Covers test case definitions, MCP-Ready test plans, tagging strategy, and coverage patterns
+2. **Always follow coding & implementation standards** in `.cursor/rules/ai-coding-standards.md`
+   - Governs HOW to implement Playwright tests: spec files, Page Objects, helpers, debugging strategy
+   - All mandatory rules (RULE 1–9) and coding patterns (PATTERN 1–18+) apply
+ 
+These rules are MANDATORY for all development, test creation, and modification.

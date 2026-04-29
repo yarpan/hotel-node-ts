@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "permissions": {
+    "auto_approve": true,
+    "scope": "node-hotel-ts",
+    "valid_until": "2030-12-31",
+    "allowed_operations": [
+      "test_execution",
+      "debug_commands",
+      "file_read",
+      "temp_file_creation",
+      "playwright_operations",
+      "npm_operations",
+      "code_exploration",
+      "linter_checks"
+    ],
+    "restricted_operations": [
+      "git_push",
+      "git_force_push",
+      "production_deploy",
+      "delete_main_files",
+      "external_commands"
+    ]
+  },
+  "commands": {
+    "playwright_test": {
+      "auto_approve": true,
+      "pattern": "npx playwright test *"
+    },
+    "npm_install": {
+      "auto_approve": true,
+      "pattern": "npm install *"
+    },
+    "debug_scripts": {
+      "auto_approve": true,
+      "pattern": "node scripts/*"
+    },
+    "file_operations": {
+      "auto_approve": true,
+      "read": true,
+      "write": true,
+      "delete": "temp_only"
+    }
+  }
+}

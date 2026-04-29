@@ -47,32 +47,34 @@ export default function BrowseRoomsPage() {
   }, []);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }} data-testid="browse-rooms-container">
       <Button
         startIcon={<BackIcon />}
         onClick={() => navigate('/dashboard')}
         sx={{ mb: 3 }}
+        data-testid="back-to-dashboard-btn"
       >
         Back to Dashboard
       </Button>
 
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 4 }}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 4 }} data-testid="page-header">
         <RoomIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-        <Typography variant="h4" sx={{ fontFamily: '"Playfair Display", serif' }}>
+        <Typography variant="h4" sx={{ fontFamily: '"Playfair Display", serif' }} data-testid="page-title">
           Browse Rooms
         </Typography>
       </Stack>
 
       {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }} data-testid="loading-container">
+          <CircularProgress data-testid="loading-spinner" />
         </Box>
       )}
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 3 }} data-testid="error-alert">{error}</Alert>}
 
       {!loading && !error && rooms.length === 0 && (
         <Card
+          data-testid="no-rooms-card"
           sx={{
             textAlign: 'center',
             py: 8,
@@ -82,17 +84,18 @@ export default function BrowseRoomsPage() {
         >
           <CardContent>
             <RoomIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary">
+            <Typography variant="h6" color="text.secondary" data-testid="no-rooms-text">
               No rooms available at the moment
             </Typography>
           </CardContent>
         </Card>
       )}
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} data-testid="rooms-grid">
         {rooms.map((room) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room.id} data-testid={`room-grid-item-${room.roomNumber}`}>
             <Card
+              data-testid={`room-card-${room.roomNumber}`}
               onClick={() => navigate(`/dashboard/rooms/${room.id}`)}
               sx={{
                 height: '100%',
@@ -114,29 +117,30 @@ export default function BrowseRoomsPage() {
               />
               <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                  <Typography variant="h6">Room {room.roomNumber}</Typography>
-                  <Chip label={room.status} color={statusColor[room.status]} size="small" />
+                  <Typography variant="h6" data-testid="room-number">Room {room.roomNumber}</Typography>
+                  <Chip data-testid="room-status" label={room.status} color={statusColor[room.status]} size="small" />
                 </Stack>
 
                 <Chip
+                  data-testid="room-type"
                   label={room.type.charAt(0).toUpperCase() + room.type.slice(1)}
                   variant="outlined"
                   size="small"
                   sx={{ alignSelf: 'flex-start', mb: 1.5 }}
                 />
 
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flex: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flex: 1 }} data-testid="room-description">
                   {room.description || 'A comfortable room for your stay.'}
                 </Typography>
 
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                   <Stack direction="row" alignItems="center" spacing={0.5}>
                     <CapacityIcon fontSize="small" color="action" />
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" data-testid="room-capacity">
                       {room.capacity} {room.capacity === 1 ? 'guest' : 'guests'}
                     </Typography>
                   </Stack>
-                  <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700 }}>
+                  <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700 }} data-testid="room-price">
                     ${room.pricePerNight}
                     <Typography component="span" variant="body2" color="text.secondary">
                       /night
@@ -145,7 +149,7 @@ export default function BrowseRoomsPage() {
                 </Stack>
 
                 <Box sx={{ mt: 2 }}>
-                  <Button variant="contained" fullWidth size="small">
+                  <Button variant="contained" fullWidth size="small" data-testid="book-now-btn">
                     Book Now
                   </Button>
                 </Box>
